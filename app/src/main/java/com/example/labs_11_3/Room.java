@@ -53,7 +53,7 @@ public class Room implements Serializable {
     public void setOccupied(boolean occupied) {
         isOccupied = occupied;
     }
-
+//
     public String getTenantName() {
         return tenantName;
     }
