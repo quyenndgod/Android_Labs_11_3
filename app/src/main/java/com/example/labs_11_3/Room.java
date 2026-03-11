@@ -1,6 +1,8 @@
 package com.example.labs_11_3;
 
-public class Room {
+import java.io.Serializable;
+
+public class Room implements Serializable {
     private String roomId;
     private String roomName;
     private double price;
@@ -69,7 +71,7 @@ public class Room {
     }
 
     public String getStatus() {
-        return isOccupied ? "Đã thuê" : "Còn trống";
+        return isOccupied ? "Occupied" : "Available";
     }
 
     @Override

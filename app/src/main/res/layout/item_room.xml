@@ -63,6 +63,14 @@
                 android:text="Tenant: John Smith"
                 android:textColor="#888888"
                 android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Phone: 0912345678"
+                android:textColor="#888888"
+                android:textSize="14sp" />
         </LinearLayout>
 
         <!-- Trạng thái (Top Right) -->

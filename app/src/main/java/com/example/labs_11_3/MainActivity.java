@@ -17,6 +17,7 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private static final int REQUEST_CODE_ADD_ROOM = 1;
+    private static final int REQUEST_CODE_EDIT_ROOM = 2;
     private List<Room> roomList;
     private RoomAdapter adapter;
     private RecyclerView rvRooms;
@@ -41,8 +42,10 @@ public class MainActivity extends AppCompatActivity {
         adapter = new RoomAdapter(roomList, new RoomAdapter.OnRoomActionListener() {
             @Override
             public void onEdit(Room room, int position) {
-                // Có thể mở rộng để dùng chung AddRoomActivity cho việc Edit
-                Toast.makeText(MainActivity.this, "Edit: " + room.getRoomName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, AddRoomActivity.class);
+                intent.putExtra("room", room);
+                intent.putExtra("position", position);
+                startActivityForResult(intent, REQUEST_CODE_EDIT_ROOM);
             }
 
             @Override
@@ -61,7 +64,9 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onView(Room room, int position) {
-                Toast.makeText(MainActivity.this, "View Detail: " + room.getRoomName(), Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, RoomDetailsActivity.class);
+                intent.putExtra("room", room);
+                startActivity(intent);
             }
         });
 
@@ -78,16 +83,29 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == REQUEST_CODE_ADD_ROOM && resultCode == RESULT_OK && data != null) {
+        if (resultCode == RESULT_OK && data != null) {
             String id = data.getStringExtra("roomId");
             String name = data.getStringExtra("roomName");
             double price = data.getDoubleExtra("price", 0);
             boolean isOccupied = data.getBooleanExtra("isOccupied", false);
+            String tenantName = data.getStringExtra("tenantName");
+            String phoneNumber = data.getStringExtra("phoneNumber");
+            int position = data.getIntExtra("position", -1);
 
-            Room newRoom = new Room(id, name, price, isOccupied, "", "");
-            roomList.add(newRoom);
-            adapter.notifyItemInserted(roomList.size() - 1);
-            rvRooms.scrollToPosition(roomList.size() - 1);
+            if (requestCode == REQUEST_CODE_ADD_ROOM) {
+                Room newRoom = new Room(id, name, price, isOccupied, tenantName, phoneNumber);
+                roomList.add(newRoom);
+                adapter.notifyItemInserted(roomList.size() - 1);
+                rvRooms.scrollToPosition(roomList.size() - 1);
+            } else if (requestCode == REQUEST_CODE_EDIT_ROOM && position != -1) {
+                Room room = roomList.get(position);
+                room.setRoomName(name);
+                room.setPrice(price);
+                room.setOccupied(isOccupied);
+                room.setTenantName(tenantName);
+                room.setPhoneNumber(phoneNumber);
+                adapter.notifyItemChanged(position);
+            }
         }
     }
 }

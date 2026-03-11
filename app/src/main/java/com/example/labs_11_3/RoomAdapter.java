@@ -42,15 +42,21 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
         holder.tvRoomName.setText(room.getRoomName());
         holder.tvRoomId.setText("Room ID: " + room.getRoomId());
         holder.tvRoomPrice.setText("$" + (int)room.getPrice() + "/month");
-        holder.tvTenantName.setText("Tenant: " + (room.isOccupied() ? room.getTenantName() : "N/A"));
-
-        // Set status badge
+        
         if (room.isOccupied()) {
+            holder.tvTenantName.setVisibility(View.VISIBLE);
+            holder.tvPhoneNumber.setVisibility(View.VISIBLE);
+            holder.tvTenantName.setText("Tenant: " + room.getTenantName());
+            holder.tvPhoneNumber.setText("Phone: " + room.getPhoneNumber());
+            
             holder.tvStatusBadge.setText("Occupied");
-            setStatusBadgeColor(holder.tvStatusBadge, "#E57373"); // Light Red
+            setStatusBadgeColor(holder.tvStatusBadge, "#E57373");
         } else {
+            holder.tvTenantName.setVisibility(View.GONE);
+            holder.tvPhoneNumber.setVisibility(View.GONE);
+            
             holder.tvStatusBadge.setText("Available");
-            setStatusBadgeColor(holder.tvStatusBadge, "#81C784"); // Light Green
+            setStatusBadgeColor(holder.tvStatusBadge, "#81C784");
         }
 
         holder.btnEdit.setOnClickListener(v -> listener.onEdit(room, position));
@@ -71,7 +77,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
     }
 
     public static class RoomViewHolder extends RecyclerView.ViewHolder {
-        TextView tvRoomName, tvRoomId, tvRoomPrice, tvTenantName, tvStatusBadge;
+        TextView tvRoomName, tvRoomId, tvRoomPrice, tvTenantName, tvPhoneNumber, tvStatusBadge;
         ImageView btnView, btnEdit, btnDelete;
 
         public RoomViewHolder(@NonNull View itemView) {
@@ -80,6 +86,7 @@ public class RoomAdapter extends RecyclerView.Adapter<RoomAdapter.RoomViewHolder
             tvRoomId = itemView.findViewById(R.id.tvRoomId);
             tvRoomPrice = itemView.findViewById(R.id.tvRoomPrice);
             tvTenantName = itemView.findViewById(R.id.tvTenantName);
+            tvPhoneNumber = itemView.findViewById(R.id.tvPhoneNumber);
             tvStatusBadge = itemView.findViewById(R.id.tvStatusBadge);
             btnView = itemView.findViewById(R.id.btnView);
             btnEdit = itemView.findViewById(R.id.btnEdit);
