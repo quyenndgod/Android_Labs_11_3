@@ -1,13 +1,11 @@
 package com.example.labs_11_3;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,6 +16,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_CODE_ADD_ROOM = 1;
     private List<Room> roomList;
     private RoomAdapter adapter;
     private RecyclerView rvRooms;
@@ -28,7 +27,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Khởi tạo dữ liệu mẫu theo hình ảnh
+        // Khởi tạo dữ liệu mẫu
         roomList = new ArrayList<>();
         roomList.add(new Room("R001", "Deluxe Room A", 1200, true, "John Smith", "0912345678"));
         roomList.add(new Room("R002", "Standard Room B", 800, false, "", ""));
@@ -42,90 +41,53 @@ public class MainActivity extends AppCompatActivity {
         adapter = new RoomAdapter(roomList, new RoomAdapter.OnRoomActionListener() {
             @Override
             public void onEdit(Room room, int position) {
-                showRoomDialog(room, position);
+                // Có thể mở rộng để dùng chung AddRoomActivity cho việc Edit
+                Toast.makeText(MainActivity.this, "Edit: " + room.getRoomName(), Toast.LENGTH_SHORT).show();
             }
 
             @Override
             public void onDelete(Room room, int position) {
                 new AlertDialog.Builder(MainActivity.this)
-                        .setTitle("Xác nhận xóa")
-                        .setMessage("Bạn có chắc chắn muốn xóa phòng này?")
-                        .setPositiveButton("Xóa", (dialog, which) -> {
+                        .setTitle("Delete Confirmation")
+                        .setMessage("Are you sure you want to delete this room?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
                             roomList.remove(position);
                             adapter.notifyItemRemoved(position);
                             adapter.notifyItemRangeChanged(position, roomList.size());
                         })
-                        .setNegativeButton("Hủy", null)
+                        .setNegativeButton("Cancel", null)
                         .show();
             }
 
             @Override
             public void onView(Room room, int position) {
-                Toast.makeText(MainActivity.this, "Xem chi tiết: " + room.getRoomName(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "View Detail: " + room.getRoomName(), Toast.LENGTH_SHORT).show();
             }
         });
 
         rvRooms.setLayoutManager(new LinearLayoutManager(this));
         rvRooms.setAdapter(adapter);
 
-        btnAddRoom.setOnClickListener(v -> showRoomDialog(null, -1));
+        // Mở AddRoomActivity khi nhấn nút +
+        btnAddRoom.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddRoomActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_ADD_ROOM);
+        });
     }
 
-    private void showRoomDialog(Room room, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_room, null);
-        builder.setView(dialogView);
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_ADD_ROOM && resultCode == RESULT_OK && data != null) {
+            String id = data.getStringExtra("roomId");
+            String name = data.getStringExtra("roomName");
+            double price = data.getDoubleExtra("price", 0);
+            boolean isOccupied = data.getBooleanExtra("isOccupied", false);
 
-        EditText etRoomId = dialogView.findViewById(R.id.etRoomId);
-        EditText etRoomName = dialogView.findViewById(R.id.etRoomName);
-        EditText etPrice = dialogView.findViewById(R.id.etPrice);
-        CheckBox cbIsOccupied = dialogView.findViewById(R.id.cbIsOccupied);
-        EditText etTenantName = dialogView.findViewById(R.id.etTenantName);
-        EditText etPhoneNumber = dialogView.findViewById(R.id.etPhoneNumber);
-
-        if (room != null) {
-            builder.setTitle("Sửa thông tin phòng");
-            etRoomId.setText(room.getRoomId());
-            etRoomId.setEnabled(false);
-            etRoomName.setText(room.getRoomName());
-            etPrice.setText(String.valueOf(room.getPrice()));
-            cbIsOccupied.setChecked(room.isOccupied());
-            etTenantName.setText(room.getTenantName());
-            etPhoneNumber.setText(room.getPhoneNumber());
-        } else {
-            builder.setTitle("Thêm phòng mới");
+            Room newRoom = new Room(id, name, price, isOccupied, "", "");
+            roomList.add(newRoom);
+            adapter.notifyItemInserted(roomList.size() - 1);
+            rvRooms.scrollToPosition(roomList.size() - 1);
         }
-
-        builder.setPositiveButton("Lưu", (dialog, which) -> {
-            String id = etRoomId.getText().toString().trim();
-            String name = etRoomName.getText().toString().trim();
-            String priceStr = etPrice.getText().toString().trim();
-            
-            if (id.isEmpty() || name.isEmpty() || priceStr.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            double price = Double.parseDouble(priceStr);
-            boolean occupied = cbIsOccupied.isChecked();
-            String tenant = etTenantName.getText().toString().trim();
-            String phone = etPhoneNumber.getText().toString().trim();
-
-            if (room == null) {
-                roomList.add(new Room(id, name, price, occupied, tenant, phone));
-                adapter.notifyItemInserted(roomList.size() - 1);
-            } else {
-                room.setRoomName(name);
-                room.setPrice(price);
-                room.setOccupied(occupied);
-                room.setTenantName(tenant);
-                room.setPhoneNumber(phone);
-                adapter.notifyItemChanged(position);
-            }
-        });
-
-        builder.setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss());
-        builder.create().show();
     }
 }
